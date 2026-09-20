@@ -3,6 +3,7 @@ from openai import OpenAI
 from anthropic import Anthropic, AuthenticationError as AnthropicAuthError
 from app.config import get_settings
 from app.context.examples import ESTIMATION_EXAMPLES
+from litellm import completion, Router
 
 settings = get_settings()
 
@@ -68,6 +69,66 @@ async def generate_estimation(transcription: str) -> dict:
             raise HTTPException(status_code=503, detail=f"Error al consultar Anthropic: {exc}") from exc
 
     raise HTTPException(status_code=400, detail=f"Unsupported LLM provider: {settings.LLM_PROVIDER}")
+
+class agregador_llm():
+    def __init__(self):
+        self.router = Router(
+            model_list=[
+                {
+                    "model_name": "estimator",
+                    "litellm_params": {
+                        "model": settings.LLM_MODEL.strip(),
+                        "api_key": settings.ANTHROPIC_API_KEY.strip(),
+                    },
+                }
+            ]
+        )
+        self.chunks = 0
+        self.tokens=0
+    def create (self,system_prompt,transcripcion):
+        self.response = self.router.completion(
+        model="estimator",
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": transcripcion},
+        ],
+        )
+        return self.response
+
+    def create_stream (self,system_prompt,transcripcion):
+            self.response = self.router.completion(
+            model="estimator",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": transcripcion},
+            ],
+            stream=True,
+            stream_options={"include_usage": True},
+            )
+            
+            return self.response
+
+    def stream_to_text(self, litellm_stream):
+        last_usage = None
+        self.last_model = None
+       
+        for chunk in litellm_stream:
+            self.last_model = self.response.model
+            chunk_usage = getattr(chunk, "usage", None)
+            self.chunks+= 1
+            if chunk_usage:
+                last_usage = chunk_usage
+                
+                self.completion_tokens = chunk_usage.completion_tokens
+                self.prompt_tokens=chunk_usage.prompt_tokens
+                self.total_tokens=chunk_usage.total_tokens
+
+            delta = chunk.choices[0].delta.content
+            if delta:
+                yield delta
+        self.last_usage = last_usage
+        
+
 
 class ConversationManager:
     def __init__(self, system_prompt: str):
