@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     LLM_MODEL: str = "claude-haiku-4-5" #"gpt-4o-mini"
     APP_ENV: str = "development"
     LOG_LEVEL: str = "DEBUG"
+    API_URL: str = "http://localhost:8000"
 
     class Config:
         env_file = ".env"

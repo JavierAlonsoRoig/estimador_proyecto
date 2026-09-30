@@ -18,9 +18,15 @@ Utiliza los siguientes presupuestos históricos como referencia:
 
 Genera una estimación detallada para el proyecto descrito."""
 
-async def generate_estimation(transcription: str) -> dict:
-    system_prompt = build_system_prompt()
+def build_user_prompt(request) -> str:
+    return (
+        f"Tipo de proyecto: {request.project_type.value}\n"
+        f"Nivel de detalle: {request.detail_level.value}\n"
+        f"Formato de salida: {request.output_format.value}\n\n"
+        f"Descripción:\n{request.description}"
+    )
 
+async def generate_estimation(system_prompt: str, user_prompt: str) -> str:
     if settings.LLM_PROVIDER == "openai":
         api_key = settings.OPENAI_API_KEY.strip()
         if not api_key:
@@ -32,14 +38,10 @@ async def generate_estimation(transcription: str) -> dict:
                 model=settings.LLM_MODEL,
                 messages=[
                     {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": transcription}
-                ]
+                    {"role": "user", "content": user_prompt},
+                ],
             )
-            return {
-                "estimation": response.choices[0].message.content,
-                "model": settings.LLM_MODEL,
-                "provider": settings.LLM_PROVIDER,
-            }
+            return response.choices[0].message.content
         except Exception as exc:
             raise HTTPException(status_code=503, detail=f"Error al consultar OpenAI: {exc}") from exc
 
@@ -52,17 +54,11 @@ async def generate_estimation(transcription: str) -> dict:
             client = Anthropic(api_key=api_key)
             response = client.messages.create(
                 model=settings.LLM_MODEL.strip(),
-                max_tokens=500,
+                max_tokens=2000,
                 system=system_prompt,
-                messages=[{"role": "user", "content": transcription}],
+                messages=[{"role": "user", "content": user_prompt}],
             )
-
-            content = response.content[0].text if response.content else ""
-            return {
-                "estimation": content,
-                "model": settings.LLM_MODEL.strip(),
-                "provider": settings.LLM_PROVIDER,
-            }
+            return response.content[0].text if response.content else ""
         except AnthropicAuthError as exc:
             raise HTTPException(status_code=401, detail="API key de Anthropic inválida o caducada") from exc
         except Exception as exc:
