@@ -9,3 +9,5 @@ async def estimate(request: EstimationRequest):
     print(f"Received estimation request: {request.transcription}")
     result = await generate_estimation(request.transcription)
     return result
+
+

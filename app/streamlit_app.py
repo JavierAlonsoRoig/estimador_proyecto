@@ -1,4 +1,3 @@
-import json
 import sys
 from pathlib import Path
 
@@ -7,13 +6,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import httpx
 import streamlit as st
 from app.config import get_settings
-from app.services.llm_service import build_system_prompt, build_user_prompt
-from app.context.examples import ESTIMATION_EXAMPLES
-from app.schemas.schemas import DetailLevel, EstimationRequest, OutputFormat, ProjectType
-from pydantic import ValidationError
+from app.schemas.schemas import DetailLevel, OutputFormat, ProjectType
 
 settings = get_settings()
-system_prompt = build_system_prompt()
 
 
 class ApiError(Exception):
@@ -30,109 +25,108 @@ def format_api_error(response: httpx.Response) -> str:
     return f"HTTP {response.status_code}: {detail}"
 
 
-def stream_estimation(request: EstimationRequest):
-    """Llama al endpoint SSE de la API y va devolviendo el texto según llega."""
-    with httpx.stream(
-        "POST",
-        f"{settings.API_URL}/api/v1/estimate/stream",
-        json=request.model_dump(mode="json"),
-        timeout=httpx.Timeout(10.0, read=120.0),
-    ) as response:
-        if response.status_code != 200:
-            response.read()
-            raise ApiError(format_api_error(response))
-
-        event = None
-        for line in response.iter_lines():
-            if line.startswith("event:"):
-                event = line.removeprefix("event:").strip()
-            elif line.startswith("data:"):
-                data = json.loads(line.removeprefix("data:").strip())
-                if event == "token":
-                    yield data["text"]
-                elif event == "metrics":
-                    st.session_state.last_call_metrics = data
-                elif event == "error":
-                    raise ApiError(data["detail"])
+def create_session() -> str:
+    """POST /sessions → devuelve el session_id nuevo."""
+    response = httpx.post(f"{settings.API_URL}/sessions", timeout=10.0)
+    if response.status_code != 201:
+        raise ApiError(format_api_error(response))
+    return response.json()["session_id"]
 
 
-st.write ("Estimador de tiempos Javier Alonso")
-#inicio historial
-if "messages" not in st.session_state:
+def estimate(session_id: str, transcript: str, project_type, detail_level, output_format, files) -> dict:
+    """POST /sessions/{id}/estimate como multipart/form-data."""
+    response = httpx.post(
+        f"{settings.API_URL}/sessions/{session_id}/estimate",
+        data={
+            "transcript": transcript,
+            "project_type": project_type.value,
+            "detail_level": detail_level.value,
+            "output_format": output_format.value,
+        },
+        files=[("attachments", (f.name, f.getvalue(), f.type)) for f in files],
+        timeout=httpx.Timeout(10.0, read=180.0),
+    )
+    if response.status_code == 404:
+        raise ApiError("La sesión ya no existe (¿se reinició la API?). Pulsa «Nueva conversación».")
+    if response.status_code != 200:
+        raise ApiError(format_api_error(response))
+    return response.json()
+
+
+def reset_conversation():
+    st.session_state.session_id = create_session()
     st.session_state.messages = []
+    st.session_state.project_facts = None
 
-#Renderizar mensajes
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
 
-#Input usuario
-with st.form("estimation_form"):
-    description = st.text_area("Descripción del proyecto", max_chars=2000)
+st.title("Estimador de tiempos Javier Alonso")
+
+# Crear la sesión una sola vez, al cargar la página
+if "session_id" not in st.session_state:
+    try:
+        reset_conversation()
+    except httpx.ConnectError:
+        st.error(f"No se puede conectar con la API en {settings.API_URL}. ¿Está arrancado uvicorn?")
+        st.stop()
+
+# Formulario
+with st.form("estimation_form", clear_on_submit=True):
+    transcript = st.text_area("Transcripción o nuevo mensaje sobre el proyecto", max_chars=2000)
+    files = st.file_uploader(
+        "Adjuntos (PDF o Word)", type=["pdf", "docx"], accept_multiple_files=True
+    )
     project_type = st.selectbox("Tipo de proyecto", list(ProjectType), format_func=lambda e: e.value)
     detail_level = st.selectbox("Nivel de detalle", list(DetailLevel), format_func=lambda e: e.value)
     output_format = st.selectbox("Formato de salida", list(OutputFormat), format_func=lambda e: e.value)
     submitted = st.form_submit_button("Estimar")
 
-request = None
-if submitted:
-    try:
-        request = EstimationRequest(
-            description=description,
-            project_type=project_type,
-            detail_level=detail_level,
-            output_format=output_format,
-        )
-    except ValidationError as exc:
-        for error in exc.errors():
-            st.error(f"{error['loc'][0]}: {error['msg']}")
+# Conversación hasta ahora
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
-if request:
-    prompt = build_user_prompt(request)
-    st.session_state.messages.append({"role": "user", "content": prompt})
+# Turno nuevo
+if submitted and transcript.strip():
+    shown = transcript
+    if files:
+        shown += "\n\n" + "\n".join(f"📎 {f.name}" for f in files)
+    st.session_state.messages.append({"role": "user", "content": shown})
     with st.chat_message("user"):
-        st.markdown(prompt)
+        st.markdown(shown)
 
-    #Generar respuesta vía API (SSE):
     with st.chat_message("assistant"):
         try:
-            answer = st.write_stream(stream_estimation(request))
+            with st.spinner("Estimando..."):
+                result = estimate(
+                    st.session_state.session_id, transcript, project_type, detail_level, output_format, files
+                )
         except httpx.ConnectError:
-            answer = None
             st.error(f"No se puede conectar con la API en {settings.API_URL}. ¿Está arrancado uvicorn?")
         except (ApiError, httpx.HTTPError) as exc:
-            answer = None
             st.error(f"Error de la API: {exc}")
+        else:
+            st.markdown(result["text"])
+            st.session_state.messages.append({"role": "assistant", "content": result["text"]})
+            st.session_state.project_facts = result["project_facts"]
 
-    if answer:
-        st.session_state.messages.append({"role": "assistant", "content": answer})
-
-#Panel lateral
+# Panel lateral
 with st.sidebar:
     st.title("Panel del sistema")
+    st.caption(f"Sesión: `{st.session_state.session_id}`")
 
-    st.subheader("System prompt activo")
-    st.text_area(
-        "System prompt",
-        value=system_prompt,
-        height=200,
-        disabled=True,
-        label_visibility="collapsed",
-    )
+    if st.button("Nueva conversación"):
+        reset_conversation()
+        st.rerun()
 
-    st.subheader("Contexto estático (ejemplos CAG)")
-    for i, example in enumerate(ESTIMATION_EXAMPLES, start=1):
-        with st.expander(f"Ejemplo {i}: {example['meeting_summary'][:40]}..."):
-            st.markdown(f"**Resumen:** {example['meeting_summary']}")
-            st.markdown(f"**Estimación:**\n{example['estimation']}")
-
-    st.subheader("Métricas de la última llamada")
-    metrics = st.session_state.get("last_call_metrics")
-    if metrics:
-        st.metric("Modelo", metrics["model"])
-        col1, col2 = st.columns(2)
-        col1.metric("Tokens entrada", metrics["input_tokens"])
-        col2.metric("Tokens salida", metrics["output_tokens"])
-        st.metric("Tiempo de respuesta", f"{metrics['elapsed_seconds']:.2f} s")
+    st.subheader("Project facts (memoria)")
+    if st.session_state.project_facts:
+        st.json(st.session_state.project_facts)
     else:
-        st.caption("Todavía no se ha realizado ninguna llamada.")
+        st.caption("Vacío: se rellena tras la primera estimación.")
+
+    st.subheader("Historial")
+    turns = len(st.session_state.messages) // 2
+    st.caption(
+        f"{turns} turnos en pantalla. La API solo envía al LLM "
+        f"los últimos {settings.MAX_TURNS}, pero los facts se conservan siempre."
+    )

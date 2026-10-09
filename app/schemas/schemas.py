@@ -1,6 +1,9 @@
 from enum import Enum
 from pydantic import BaseModel, Field
 from pydantic import model_validator
+from app.services.sessions import ProjectFacts
+
+
 
 class ProjectType(str, Enum):
     MOBILE_APP = "mobile_app"
@@ -29,6 +32,15 @@ class EstimationResponse(BaseModel):
     prompt_version: str
 
 
+class SessionResponse(BaseModel):
+    session_id: str
+    
+class SessionEstimateResponse(BaseModel):
+    text: str
+    prompt_version: str
+    project_facts: ProjectFacts
+
+
 class Phase(BaseModel):
     name: str
     duration_weeks: int = Field(ge=1, le=52)
@@ -38,10 +50,12 @@ class Phase(BaseModel):
 
 class EstimationResult(BaseModel):
     summary: str
+    phases: list[Phase]
+    confidence_pct: int = Field (ge=0, le=100)
     total_duration_weeks: int = Field(ge=1)
     total_cost_eur: int = Field(ge=0)
-    confidence_pct: int = Field(ge=0, le=100)
-    phases: list[Phase]
+   
+    
 
     @model_validator(mode="after")
     def total_must_match_sum_of_phases(self):

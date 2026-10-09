@@ -23,4 +23,22 @@ For every phase, list the assumptions you made and a confidence
 interval expressed as a percentage range.
 {% endif %}
 
+<project_facts>
+{% if project_facts.project_name %}
+- project_name: {{ project_facts.project_name }}
+{% endif %}
+{% if project_facts.assumed_team_size %}
+- assumed_team_size: {{ project_facts.assumed_team_size }}
+{% endif %}
+{% if project_facts.mentioned_technologies %}
+- mentioned_technologies: {{ project_facts.mentioned_technologies | join(", ") }}
+{% endif %}
+{% if project_facts.agreed_scope %}
+- agreed_scope: {{ project_facts.agreed_scope }}
+{% endif %}
+</project_facts>
+
+The facts above were established earlier in this conversation. Stay
+consistent with them unless the user explicitly changes them.
+
 {% include "estimation/v1/examples.j2" %}

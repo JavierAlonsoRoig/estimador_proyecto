@@ -1,3 +1,5 @@
+from pyexpat.errors import messages
+
 from fastapi import HTTPException
 from openai import OpenAI
 from anthropic import Anthropic, AuthenticationError as AnthropicAuthError
@@ -124,6 +126,10 @@ class agregador_llm():
                 yield delta
         self.last_usage = last_usage
         
+    def create_from_messages(self, messages: list[dict]) -> str:
+        """Llamada con el array messages completo (system + historial + turno nuevo)."""
+        response = self.router.completion(model="estimator", messages=messages)
+        return response.choices[0].message.content
 
 
 class ConversationManager:

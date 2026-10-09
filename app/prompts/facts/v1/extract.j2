@@ -1,0 +1,25 @@
+You maintain the known facts of a software project that is being
+estimated in a conversation.
+
+<current_facts>
+{{ current_facts }}
+</current_facts>
+
+<user_message>
+{{ user_message }}
+</user_message>
+
+<assistant_message>
+{{ assistant_message }}
+</assistant_message>
+
+Update the facts with any new information from this exchange. Keep the
+current facts unless the user explicitly changed them. Facts can come
+from the user or from assumptions the assistant made in its estimate
+(for example the team size). Do not invent anything.
+
+Return ONLY a JSON object with exactly these keys:
+- "project_name": string or null
+- "assumed_team_size": integer or null
+- "mentioned_technologies": list of strings
+- "agreed_scope": string or null (one or two sentences)
