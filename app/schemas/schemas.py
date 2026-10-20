@@ -66,3 +66,5 @@ class EstimationResult(BaseModel):
         if abs(sum_cost - self.total_cost_eur) / self.total_cost_eur > 0.05:
             raise ValueError("total_cost_eur does not match phases")
         return self
+
+  
