@@ -10,6 +10,10 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "DEBUG"
     API_URL: str = "http://localhost:8000"
     MAX_TURNS: int = 6
+    DATABASE_URL: str = "postgresql+asyncpg://estimator:estimator@localhost:5432/estimator"
+
+
+
     class Config:
         env_file = ".env"
 

@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from app.routers import estimations, sessions
 from app.embedding_pipeline.router import router as embeddings_router
+from app.embedding_pipeline.search import router as search_router
 
 
 app = FastAPI(
@@ -12,6 +13,8 @@ app = FastAPI(
 app.include_router(estimations.router)
 app.include_router(sessions.router)
 app.include_router(embeddings_router, prefix="/embeddings", tags=["embeddings"])
+app.include_router(search_router, tags=["embeddings"])
+
 
 @app.get("/health")
 async def health():

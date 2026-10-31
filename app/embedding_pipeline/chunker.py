@@ -29,7 +29,7 @@ class JSONStructuralChunker:
     def _build_parent_context(self, budget: dict) -> str:
         client = budget["client_metadata"]
         return (
-            f"[Project: {budget['project_summary']}]\\n"
+            f"[Project: {budget['project_summary']}]\n"
             f"[Client sector: {client['sector']} | "
             f"Year: {budget['year']} | "
             f"Main tech: {budget['main_technology']}]"
@@ -50,7 +50,7 @@ class JSONStructuralChunker:
         self, component: dict, parent_context: str
     ) -> str:
         return (
-            f"{parent_context}\\n\\n"
+            f"{parent_context}\n\n"
             f"Component: {component['name']}\\n"
             f"Description: {component['description']}\\n"
             f"Tech stack: {', '.join(component['tech_stack'])}\\n"

@@ -69,16 +69,34 @@ class EmbeddedChunk(Chunk):
 
 
 class IngestRequest(BaseModel):
-    budgets: list[Budget] = Field(min_length=1)
-
-
-class IngestStats(BaseModel):
-    total_budgets: int
-    total_chunks: int
-    total_tokens: int
-    estimated_cost_usd: float
+    source_path: str = Field(min_length=1)
+    # documents.document_type is String(50)
+    document_type: str = Field(min_length=1, max_length=50)
+    content: Budget
 
 
 class IngestResponse(BaseModel):
-    chunks: list[EmbeddedChunk]
-    stats: IngestStats
+    document_id: int
+    chunks_created: int
+    embedding_dimension: int
+    ingestion_time_ms: int
+
+class SearchRequest(BaseModel):
+    query: str = Field(min_length=1)
+    k: int = Field(default=5, ge=1, le=50)
+
+
+class SearchResult(BaseModel):
+    chunk_id: int
+    document_id: int
+    chunk_type: str
+    content: str
+    distance: float
+    metadata: dict
+
+
+class SearchResponse(BaseModel):
+    query: str
+    k: int
+    search_time_ms: int
+    results: list[SearchResult]
