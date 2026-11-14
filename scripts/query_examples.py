@@ -43,7 +43,7 @@ def print_results(angle: str, data: dict) -> None:
         # Chunks contain newlines: flatten them so each result fits on one line
         preview = " ".join(result["content"].split())[:CONTENT_PREVIEW_CHARS]
         print(
-            f"{rank}. chunk_id={result['chunk_id']:<5} distance={result['distance']:.4f}  "
+            f"{rank}. chunk_id={result['chunk_id']:<5} score={result['score']:.4f}  "
             f"type={result['chunk_type']}"
         )
         print(f"   {preview}...")

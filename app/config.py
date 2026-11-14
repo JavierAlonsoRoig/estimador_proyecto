@@ -11,6 +11,10 @@ class Settings(BaseSettings):
     API_URL: str = "http://localhost:8000"
     MAX_TURNS: int = 6
     DATABASE_URL: str = "postgresql+asyncpg://estimator:estimator@localhost:5432/estimator"
+     # Retrieval (session 10)
+    SEARCH_MODE: str = "vector"   # "vector" | "hybrid"
+    RECALL_K: int = 50            # candidates per branch before fusing/reranking
+    RRF_K: int = 60               # RRF smoothing constant
 
 
 

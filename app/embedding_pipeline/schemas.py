@@ -84,6 +84,8 @@ class IngestResponse(BaseModel):
 class SearchRequest(BaseModel):
     query: str = Field(min_length=1)
     k: int = Field(default=5, ge=1, le=50)
+    # None = use the server default (settings.SEARCH_MODE)
+    mode: Literal["vector", "hybrid"] | None = None
 
 
 class SearchResult(BaseModel):
@@ -91,12 +93,14 @@ class SearchResult(BaseModel):
     document_id: int
     chunk_type: str
     content: str
-    distance: float
+      # Higher is better; its scale depends on the mode (cosine similarity or RRF score)
+    score: float
     metadata: dict
 
 
 class SearchResponse(BaseModel):
     query: str
     k: int
+    mode: str
     search_time_ms: int
     results: list[SearchResult]
