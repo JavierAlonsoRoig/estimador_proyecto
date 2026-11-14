@@ -1,0 +1,32 @@
+[
+  {
+    "id": "q1-fashion-store",
+    "query": "Online shop for a clothing brand: product catalog with search and filters, shopping cart, card checkout and order confirmation emails.",
+    "relevant_budget_ids": ["BUD-2024-005", "BUD-2024-017"],
+    "notes": "Classic B2C storefront. Traps: BUD-2024-008 (fashion, but a returns portal) and BUD-2024-003 (card payments, but a payments gateway)."
+  },
+  {
+    "id": "q2-marketplace",
+    "query": "Marketplace where independent sellers list their products, a single order can include items from several sellers, and the platform pays each seller minus a commission and handles refunds and disputes.",
+    "relevant_budget_ids": ["BUD-2024-006", "BUD-2024-005"],
+    "notes": "BUD-2024-006 is the direct match. BUD-2024-005 counts because catalog and cart are part of any marketplace. Trap: BUD-2024-003 (payouts and reconciliation, but for a payments gateway)."
+  },
+  {
+    "id": "q3-telehealth",
+    "query": "Healthcare app for a clinic network: patients book appointments with doctors, have video consultations, and chronic patients send vitals from wearables so the care team gets alerts.",
+    "relevant_budget_ids": ["BUD-2024-009", "BUD-2024-010"],
+    "notes": "Traps: BUD-2024-007 (slot booking, but grocery delivery) and BUD-2024-013 (sensor ingestion and alerts, but factory machines)."
+  },
+  {
+    "id": "q4-predictive-maintenance",
+    "query": "Monitor the machines on a production line: collect sensor data in real time, detect anomalies and predict failures before they happen, and show alerts on the operators' existing control screens.",
+    "relevant_budget_ids": ["BUD-2024-013", "BUD-2024-015"],
+    "notes": "BUD-2024-013 is the direct match. BUD-2024-015 counts as industrial time-series ingestion plus forecasting. Trap: BUD-2024-010 (real-time sensor ingestion and alerting, but wearables in healthcare)."
+  },
+  {
+    "id": "q5-warehouse-logistics",
+    "query": "Logistics for an online retailer's warehouse: barcode picking and packing, robots moving goods between aisles, and planning delivery routes for the van fleet.",
+    "relevant_budget_ids": ["BUD-2024-014", "BUD-2024-007"],
+    "notes": "Traps: BUD-2024-011 (inventory and reorder, but a pharmacy) and BUD-2024-013 (industrial, but predictive maintenance)."
+  }
+]
