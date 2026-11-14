@@ -1,9 +1,11 @@
 from datetime import datetime
 
-from pgvector.sqlalchemy import Vector
-from sqlalchemy import BigInteger, DateTime, ForeignKey, Index, Integer, String, Text, func, text
-from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from pgvector.sqlalchemy import Vector
+from sqlalchemy import BigInteger, Computed, DateTime, ForeignKey, Index, Integer, String, Text, func, text
+from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
+
 
 from app.db import Base
 
@@ -34,6 +36,7 @@ class Chunk(Base):
     __tablename__ = "chunks"
     __table_args__ = (
         Index("ix_chunks_metadata_gin", "metadata", postgresql_using="gin"),
+        Index("ix_chunks_content_tsv", "content_tsv", postgresql_using="gin"),
     )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
@@ -45,6 +48,12 @@ class Chunk(Base):
     token_count: Mapped[int] = mapped_column(Integer)
     # nullable: a chunk can be stored first and embedded later
     embedding: Mapped[list[float] | None] = mapped_column(Vector(EMBEDDING_DIM))
+     # Full-text search vector, maintained by Postgres from content (never written by the app)
+    content_tsv: Mapped[str | None] = mapped_column(
+        TSVECTOR,
+        Computed("to_tsvector('english', content)", persisted=True),
+        nullable=True,
+    )
     metadata_: Mapped[dict] = mapped_column(
         "metadata", JSONB, server_default=text("'{}'::jsonb")
     )
