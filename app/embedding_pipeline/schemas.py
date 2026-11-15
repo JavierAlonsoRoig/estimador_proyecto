@@ -84,8 +84,9 @@ class IngestResponse(BaseModel):
 class SearchRequest(BaseModel):
     query: str = Field(min_length=1)
     k: int = Field(default=5, ge=1, le=50)
-    # None = use the server default (settings.SEARCH_MODE)
+    # None = use the server defaults (settings.SEARCH_MODE / settings.RERANK_ENABLED)
     mode: Literal["vector", "hybrid"] | None = None
+    rerank: bool | None = None
 
 
 class SearchResult(BaseModel):
@@ -102,5 +103,10 @@ class SearchResponse(BaseModel):
     query: str
     k: int
     mode: str
+    reranked: bool
     search_time_ms: int
+    # Per-stage breakdown: embed / search / rerank / total
+    timings_ms: dict[str, float]
     results: list[SearchResult]
+
+

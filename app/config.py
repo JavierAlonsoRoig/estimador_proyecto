@@ -15,6 +15,10 @@ class Settings(BaseSettings):
     SEARCH_MODE: str = "vector"   # "vector" | "hybrid"
     RECALL_K: int = 50            # candidates per branch before fusing/reranking
     RRF_K: int = 60               # RRF smoothing constant
+    
+    RERANK_ENABLED: bool = False  # cross-encoder second stage on/off
+    RERANKER_MODEL: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+
 
 
 
