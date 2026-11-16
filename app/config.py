@@ -12,12 +12,18 @@ class Settings(BaseSettings):
     MAX_TURNS: int = 6
     DATABASE_URL: str = "postgresql+asyncpg://estimator:estimator@localhost:5432/estimator"
      # Retrieval (session 10)
-    SEARCH_MODE: str = "vector"   # "vector" | "hybrid"
+    SEARCH_MODE: str = "hybrid"   # "vector" | "hybrid"
     RECALL_K: int = 50            # candidates per branch before fusing/reranking
     RRF_K: int = 60               # RRF smoothing constant
     
     RERANK_ENABLED: bool = False  # cross-encoder second stage on/off
     RERANKER_MODEL: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+
+    # Generation (session 11)
+    GENERATION_MODEL: str = "gpt-4.1-mini"  # OpenAI model with Structured Outputs support
+    CONTEXT_TOP_K: int = 8                  # chunks passed to the generator
+    
+    JUDGE_MODEL: str = "gpt-4.1"  # RAGAS judge: stronger than, and different from, the generator
 
 
 

@@ -3,30 +3,40 @@
     "id": "q1-fashion-store",
     "query": "Online shop for a clothing brand: product catalog with search and filters, shopping cart, card checkout and order confirmation emails.",
     "relevant_budget_ids": ["BUD-2024-005", "BUD-2024-017"],
-    "notes": "Classic B2C storefront. Traps: BUD-2024-008 (fashion, but a returns portal) and BUD-2024-003 (card payments, but a payments gateway)."
+    "notes": "Classic B2C storefront. Traps: BUD-2024-008 (fashion, but a returns portal) and BUD-2024-003 (card payments, but a payments gateway).",
+    "reference_hours": 216,
+    "reference": "Expected estimate for a small-to-medium online clothing shop, about 216 hours. Product catalog with search and filters: 80 hours, scaled between the MVP product list (20 hours) and the headless product catalog API with faceted search (150 hours). Storefront web frontend: 60 hours, as the storefront PWA (60 hours). Shopping cart: 24 hours, as the MVP cart (24 hours). Card checkout: 40 hours, as the MVP checkout to pay with card (40 hours). Order confirmation emails: 12 hours, as the MVP order email (12 hours). The 140-hour cart and checkout service with a promotion engine and tax calculation is oversized for this scope."
   },
   {
     "id": "q2-marketplace",
     "query": "Marketplace where independent sellers list their products, a single order can include items from several sellers, and the platform pays each seller minus a commission and handles refunds and disputes.",
     "relevant_budget_ids": ["BUD-2024-006", "BUD-2024-005"],
-    "notes": "BUD-2024-006 is the direct match. BUD-2024-005 counts because catalog and cart are part of any marketplace. Trap: BUD-2024-003 (payouts and reconciliation, but for a payments gateway)."
+    "notes": "BUD-2024-006 is the direct match. BUD-2024-005 counts because catalog and cart are part of any marketplace. Trap: BUD-2024-003 (payouts and reconciliation, but for a payments gateway).",
+    "reference_hours": 830,
+    "reference": "Expected estimate for a multi-vendor marketplace, about 830 hours. Vendor onboarding with identity verification and payout account setup: 130 hours. Split order management across vendors: 170 hours. Vendor payouts engine with commission calculation: 140 hours. Dispute and refund handling: 100 hours. These four come from the multi-vendor marketplace budget (540 hours in total). Product catalog for seller listings: 150 hours, as the product catalog API. Cart and checkout: 140 hours, as the cart and checkout service."
   },
   {
     "id": "q3-telehealth",
     "query": "Healthcare app for a clinic network: patients book appointments with doctors, have video consultations, and chronic patients send vitals from wearables so the care team gets alerts.",
     "relevant_budget_ids": ["BUD-2024-009", "BUD-2024-010"],
-    "notes": "Traps: BUD-2024-007 (slot booking, but grocery delivery) and BUD-2024-013 (sensor ingestion and alerts, but factory machines)."
+    "notes": "Traps: BUD-2024-007 (slot booking, but grocery delivery) and BUD-2024-013 (sensor ingestion and alerts, but factory machines).",
+    "reference_hours": 850,
+    "reference": "Expected estimate for a clinic network healthcare app, about 850 hours. Appointment scheduling with clinician availability and reminders: 150 hours. Telemedicine video consultations: 160 hours. Consent capture and audit trail for protected health information: 60 hours. These three come from the telemedicine platform budget. Wearable vitals data ingestion: 180 hours. Clinical alerting engine that escalates abnormal vitals to care teams: 150 hours. Care team dashboard to triage alerts: 150 hours. These three come from the remote patient monitoring budget. FHIR integration with a hospital EHR is not requested and is excluded."
   },
   {
     "id": "q4-predictive-maintenance",
     "query": "Monitor the machines on a production line: collect sensor data in real time, detect anomalies and predict failures before they happen, and show alerts on the operators' existing control screens.",
     "relevant_budget_ids": ["BUD-2024-013", "BUD-2024-015"],
-    "notes": "BUD-2024-013 is the direct match. BUD-2024-015 counts as industrial time-series ingestion plus forecasting. Trap: BUD-2024-010 (real-time sensor ingestion and alerting, but wearables in healthcare)."
+    "notes": "BUD-2024-013 is the direct match. BUD-2024-015 counts as industrial time-series ingestion plus forecasting. Trap: BUD-2024-010 (real-time sensor ingestion and alerting, but wearables in healthcare).",
+    "reference_hours": 500,
+    "reference": "Expected estimate for predictive maintenance on a production line, about 500 hours. Machine sensor telemetry ingestion into a time-series store: 170 hours; the smart meter data pipeline (200 hours) confirms this order of magnitude for industrial ingestion at scale. Anomaly detection and failure prediction models: 200 hours, as the predictive maintenance models. Alerts on the operators' existing control screens through SCADA dashboard integration: 130 hours."
   },
   {
     "id": "q5-warehouse-logistics",
     "query": "Logistics for an online retailer's warehouse: barcode picking and packing, robots moving goods between aisles, and planning delivery routes for the van fleet.",
     "relevant_budget_ids": ["BUD-2024-014", "BUD-2024-007"],
-    "notes": "Traps: BUD-2024-011 (inventory and reorder, but a pharmacy) and BUD-2024-013 (industrial, but predictive maintenance)."
+    "notes": "Traps: BUD-2024-011 (inventory and reorder, but a pharmacy) and BUD-2024-013 (industrial, but predictive maintenance).",
+    "reference_hours": 640,
+    "reference": "Expected estimate for an online retailer's warehouse logistics, about 640 hours. Warehouse management core with barcode picking and packing: 220 hours. Coordination of automated guided vehicles moving goods between aisles: 240 hours. Delivery route optimization for the van fleet: 180 hours, as the route optimization service of the grocery delivery budget."
   }
 ]
